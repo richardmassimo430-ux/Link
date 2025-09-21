@@ -1,0 +1,175 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Mail, Phone, MapPin } from "lucide-react";
+import { motion } from "framer-motion";
+
+// Single-file React component (Tailwind + shadcn/ui)
+// Default export so it can be previewed/imported directly
+
+const mockTracking = {
+  trackingId: "AXY-982337",
+  status: "In Transit",
+  percent: 62,
+  origin: "Texas, USA",
+  destination: "New York, USA",
+  lastUpdated: "2025-09-20 14:12",
+  events: [
+    { time: "2025-09-18 08:10", title: "Shipment received" },
+    { time: "2025-09-19 11:25", title: "Departed Lagos hub" },
+    { time: "2025-09-20 14:12", title: "Arrived regional sorting" },
+  ],
+  company: {
+    name: "Nexus Logistics Ltd.",
+    fax: "+234-1-700-1234",
+    phone: "+234-803-555-0101",
+    email: "support@nexuslogistics.ng",
+  },
+};
+
+export default function TrackingApp() {
+  const [query, setQuery] = useState("");
+  const [tracking, setTracking] = useState(mockTracking);
+  const [searching, setSearching] = useState(false);
+
+  function handleSearch(e) {
+    e.preventDefault();
+    setSearching(true);
+    // Simulate an instant response (replace with real API call)
+    setTimeout(() => {
+      setTracking((t) => ({ ...t, trackingId: query || t.trackingId }));
+      setSearching(false);
+    }, 600);
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6 md:p-12">
+      <div className="max-w-6xl mx-auto grid gap-6 md:grid-cols-3 items-start">
+        {/* Left: Search + Company Card */}
+        <div className="md:col-span-1 space-y-6">
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-semibold">Track a package</h3>
+              <p className="text-sm text-slate-500">Enter tracking ID to view progress</p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSearch} className="flex gap-2">
+                <Input
+                  placeholder="e.g. AXY-982337"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+                <Button type="submit" disabled={searching}>{searching ? "Searching..." : "Search"}</Button>
+              </form>
+
+              <div className="mt-6">
+                <h4 className="text-sm font-medium text-slate-700">Carrier</h4>
+                <div className="mt-3 flex items-start gap-3">
+                  <div className="flex-1">
+                    <div className="text-base font-semibold">{tracking.company.name}</div>
+                    <div className="text-sm text-slate-500">Reliable national courier</div>
+
+                    <div className="mt-3 text-sm text-slate-600 space-y-1">
+                      <div className="flex items-center gap-2"><Phone size={14} /> <span>{tracking.company.phone}</span></div>
+                      <div className="flex items-center gap-2"><Mail size={14} /> <span>{tracking.company.email}</span></div>
+                      <div className="flex items-center gap-2"><MapPin size={14} /> <span>HQ: Lagos</span></div>
+                      <div className="flex items-center gap-2 mt-2"><span className="font-medium">Fax:</span> <span>{tracking.company.fax}</span></div>
+                    </div>
+
+                    <div className="mt-4 flex gap-2">
+                      <Button onClick={() => navigator.clipboard?.writeText(tracking.trackingId)}>Copy ID</Button>
+                      <Button variant="outline" onClick={() => alert('Contacting support...')}>Contact</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h4 className="text-sm font-semibold">Quick actions</h4>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <Button onClick={() => alert('Scheduling pickup...')}>Schedule Pickup</Button>
+              <Button variant="ghost" onClick={() => alert('Printing manifest...')}>Print Manifest</Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right: Tracking Details */}
+        <div className="md:col-span-2 space-y-6">
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-bold">Tracking — {tracking.trackingId}</h2>
+                    <p className="text-sm text-slate-500">Last updated: {tracking.lastUpdated}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-slate-500">Status</div>
+                    <div className="text-lg font-semibold text-amber-600">{tracking.status}</div>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-sm font-medium">Progress</h4>
+                    <div className="mt-3">
+                      <Progress value={tracking.percent} className="h-3 rounded-full" />
+                      <div className="mt-2 text-sm text-slate-600">{tracking.percent}% complete</div>
+                    </div>
+
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium">Route</h4>
+                      <div className="mt-2 text-sm text-slate-700">{tracking.origin} → {tracking.destination}</div>
+                    </div>
+
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium">Timeline</h4>
+                      <ul className="mt-3 space-y-3">
+                        {tracking.events.map((ev, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <div className="mt-1 text-xs text-slate-500 w-28">{ev.time}</div>
+                            <div className="flex-1 bg-white p-3 rounded-lg shadow-sm">{ev.title}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium">Map (preview)</h4>
+                    <div className="mt-3 h-56 rounded-lg border border-dashed border-slate-200 flex items-center justify-center bg-white">
+                      <div className="text-sm text-slate-400">Map placeholder — integrate map provider here</div>
+                    </div>
+
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium">Shipment details</h4>
+                      <div className="mt-3 space-y-2 text-sm text-slate-700">
+                        <div><span className="font-medium">Carrier:</span> {tracking.company.name}</div>
+                        <div><span className="font-medium">Tracking ID:</span> {tracking.trackingId}</div>
+                        <div><span className="font-medium">Expected:</span> 2025-09-22</div>
+                        <div><span className="font-medium">Fax:</span> {tracking.company.fax}</div>
+                      </div>
+
+                      <div className="mt-4 flex gap-2">
+                        <Button onClick={() => alert('Viewing proof of delivery...')}>Proof of Delivery</Button>
+                        <Button variant="outline" onClick={() => alert('Sharing tracking link...')}>Share</Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
